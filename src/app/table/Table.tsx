@@ -181,12 +181,13 @@ function Table() {
                                             onSubmit={(e) => handleSubmitLegend(e, truck.number)}
                                             onKeyDown={e => handleEscPress(e)}
                                             className="flex flex-col">
-                                            <input required={true} name="date" onChange={handleInputChange} value={newLegend.date || moment().format("YYYY-MM-DD")} type={"date"}/>
-                                            <input required={true} name="to" placeholder="Place" onChange={handleInputChange} value={newLegend.to} type="text"/>
-                                            <input required={true} name="deliveryTime" placeholder="HH:MM" onChange={handleInputChange} value={newLegend.deliveryTime || moment().format("HH:mm")} type="text"/>
-                                            <select required={true} name="status" id="" value={newLegend.status || "LOADING"} onChange={handleInputChange}>
-                                                <option value="LOADING">Loading</option>
-                                                <option value="UNLOADING">Unloading</option>
+                                            <input className="w-24" required={true} name="date" onChange={handleInputChange} value={newLegend.date || moment().format("YYYY-MM-DD")} type={"date"}/>
+                                            <input className="w-24" required={true} name="to" placeholder="Place" onChange={handleInputChange} value={newLegend.to} type="text"/>
+                                            <input className="w-24" required={true} name="deliveryTime" placeholder="HH:MM" onChange={handleInputChange} value={newLegend.deliveryTime || moment().format("HH:mm")} type="text"/>
+                                            <select className={ `w-24 ${newLegend.status === 'LOADING' ? 'bg-green-300' : newLegend.status === 'UNLOADING' ? 'bg-blue-300' : 'bg-red-300'}` } required={true} name="status" id="" value={newLegend.status} onChange={handleInputChange}>
+                                                <option value=""></option>
+                                                <option className="bg-green-300" value="LOADING">Loading</option>
+                                                <option className="bg-blue-300" value="UNLOADING">Unloading</option>
                                             </select>
                                             <button type="submit" className="hidden">submit</button>
                                         </form>
