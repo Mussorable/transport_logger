@@ -1,50 +1,66 @@
-# React + TypeScript + Vite
+# Table Management Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is an interactive web application for managing truck legends and schedules. The application is built using **React** with **TypeScript** and leverages the **Moment.js** library for date and time management.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## Expanding the ESLint configuration
+- Add and manage truck legends dynamically.
+- Edit trucks and their work schedules (`workLegend`).
+- Responsive and user-friendly interface with interactive modals.
+- Built-in localization for handling date and time formats based on the user's browser.
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+---
 
-- Configure the top-level `parserOptions` property like this:
+## Installation
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+### Prerequisites
+To run this project locally, ensure you have the following installed on your system:
+- **Node.js v16+**
+- **npm v8+**
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+### Steps
+1. Clone the repository:
+   ```bash
+   git clone <https://github.com/Mussorable/transport_logger.git>
+   cd <transport_logger>
+   ```
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+4. Open the application in your browser:
+   ```
+   http://localhost:5173
+   ```
+
+---
+
+## Usage
+
+### Adding a Truck
+1. Click the **Add Truck** button.
+2. Enter the truck number and submit the form.
+3. The truck will be added to the list with an empty legend.
+
+### Viewing and Editing a Legend
+- Click the truck to view or edit its associated **workLegend**.
+- Add, update, or delete entries as needed to manage the delivery schedule.
+
+---
+
+## Technologies Used
+
+- **React (v18)**: For building the user interface.
+- **TypeScript (v5.6)**: Ensures type safety across the codebase.
+- **Moment.js (v2.30)**: For date and time manipulation.
+- **Tailwind CSS (v3.4)**: For styling the components.
+- **Vite (v6)**: For fast and efficient development.
