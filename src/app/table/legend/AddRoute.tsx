@@ -1,5 +1,6 @@
 import moment from "moment";
 import { ChangeEvent, FormEvent, KeyboardEvent, useState, FocusEvent } from "react";
+import { generateTimeFormat } from "../../../utils/utils.tsx";
 
 interface AddRouteProps {
     truckNumber: string;
@@ -24,10 +25,12 @@ function AddRoute({ truckNumber, onRouteAdded, day, onCancel }: AddRouteProps) {
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setNewRoute((prev) => ({
-            ...prev,
-            [name]: name === "deliveryTime" ? moment(value, "HH:mm", true).format("HH:mm") : value,
-        }));
+        setNewRoute((prev) => {
+            return {
+                ...prev,
+                [name]: name === "deliveryTime" ? generateTimeFormat(value) : value,
+            }
+        });
     };
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
@@ -47,19 +50,21 @@ function AddRoute({ truckNumber, onRouteAdded, day, onCancel }: AddRouteProps) {
             onBlur={handleFormBlur}
             onSubmit={handleSubmit}
             onKeyDown={handleEscPress}
-            className="flex flex-col">
-            <input autoFocus={true} className="w-full text-[12px]" required={ true } name="date" onChange={ handleInputChange }
+            className="flex flex-col border-2 border-red-500">
+            <input autoFocus={true} className="w-full text-[12px] outline-none" required={ true } name="date" onChange={ handleInputChange }
                    value={ newRoute.date || moment().format("YYYY-MM-DD") } type={ "date" }/>
             <div className="flex">
-                <input className="w-full text-sm py-0 my-0" required={ true } name="to" placeholder="Place"
+                <input className="w-full text-sm py-0 my-0 outline-none" required={ true } name="to" placeholder="Place"
                        onChange={ handleInputChange }
                        value={ newRoute.to } type="text"/>
-                <input className="w-full text-sm py-0 my-0" required={ true } name="deliveryTime" placeholder="HH:MM"
-                       onChange={ handleInputChange } value={ newRoute.deliveryTime || moment().format("HH:mm") }
+                <input
+                       onFocus={e => e.currentTarget.setSelectionRange(0, newRoute.deliveryTime.length)}
+                       className="w-full text-sm py-0 my-0 outline-none" required={ true } name="deliveryTime" placeholder="HH:MM"
+                       onChange={ handleInputChange } value={ newRoute.deliveryTime }
                        type="text"/>
             </div>
             <select
-                className={ `w-full h-full text-[13.5px] ${ newRoute.status === 'LOADING' ? 'bg-green-300' : newRoute.status === 'UNLOADING' ? 'bg-blue-300' : 'bg-red-300' }` }
+                className={ `w-full h-full text-[10.5px] outline-none ${ newRoute.status === 'LOADING' ? 'bg-green-300' : newRoute.status === 'UNLOADING' ? 'bg-blue-300' : 'bg-red-300' }` }
                 required={ true } name="status" id="" value={ newRoute.status } onChange={ handleInputChange }>
                 <option className="bg-green-300" value="LOADING">Loading</option>
                 <option className="bg-blue-300" value="UNLOADING">Unloading</option>

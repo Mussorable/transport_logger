@@ -12,3 +12,19 @@ export const generateWeek = () => {
     }
     return week;
 };
+
+export const generateTimeFormat = (value: string) => {
+    let restrictedValue = value.replace(/[^0-9]/g, '');
+    if (!restrictedValue.includes(':') && restrictedValue.length > 2)
+        restrictedValue = `${ restrictedValue.slice(0, 2) }:${ restrictedValue.slice(2) }`;
+
+    if (restrictedValue.length > 5)
+        return restrictedValue.slice(0, 5);
+
+    if (parseInt(restrictedValue.slice(0, 2)) < 0 || parseInt(restrictedValue.slice(0, 2)) > 23)
+        return `00:${ restrictedValue.slice(2) }`;
+    if (parseInt(restrictedValue.slice(3, 5)) < 0 || parseInt(restrictedValue.slice(3, 5)) > 59)
+        return `${ restrictedValue.slice(0, 2) }:00`;
+
+    return restrictedValue ? restrictedValue : '';
+};
