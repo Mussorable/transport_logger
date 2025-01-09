@@ -1,5 +1,5 @@
 import rightArrow from '../../assets/right-arrow.svg';
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useState } from "react";
 import ModalWindow from "../../utils/ModalWindow.tsx";
 import moment from "moment/min/moment-with-locales";
 import AddRoute, { Route } from "./legend/AddRoute.tsx";
@@ -108,10 +108,6 @@ function TableModern() {
     ]);
     const [editingTruck, setEditingTruck] = useState<EditingTruck | null>(null);
 
-    useEffect(() => {
-        console.log(legend);
-    }, [legend]);
-
     const handleAddRoute = (route: Route, certainLegend: EditingTruck) => {
         const { truckNumber } = certainLegend;
         setLegend((prevLegend) =>
@@ -151,8 +147,8 @@ function TableModern() {
 
     return (
         <>
-            <div className="w-full h-full flex">
-                <div className="bg-gray-800 w-1/2 overflow-y-scroll scrollbar-hide">
+            <div className="w-full h-full flex bg-gray-800">
+                <div className="w-1/2 overflow-y-scroll scrollbar-hide">
                     <div className="flex h-8 w-full border-b border-gray-600">
                         <div className="flex-1 text-white font-semibold text-center"><p>Truck</p></div>
                         { week.map((day) => {
@@ -169,8 +165,8 @@ function TableModern() {
                     { legend && legend.map((truck) => {
                         return (
                             <div key={ truck.number }
-                                 className="flex w-fullbg-gray-900 font-semibold border-b border-gray-400">
-                                <div className="flex-1 text-white px-2 bg-gray-700 overflow-x-hidden">
+                                 className="flex w-full bg-gray-900 font-semibold border-b border-gray-400">
+                                <div className="flex-1 text-white px-2 bg-gray-700 overflow-x-hidden hover:bg-gray-600 hover:cursor-pointer">
                                     <p>{ truck.number.toUpperCase() }</p>
                                 </div>
                                 { week.map((day) => {
@@ -240,7 +236,10 @@ function TableModern() {
                         <button onClick={ handleAddTruckClick } className="w-full bg-gray-300 hover:bg-gray-200">New truck</button>
                     </div>
                 </div>
-                <div className="bg-green-300 h-full w-1/2"></div>
+                <div className="h-full w-1/2 flex flex-col border-l border-gray-200">
+                    <div className="h-full w-full border-b border-gray-200"></div>
+                    <div className="bg-red-300 h-full w-full"></div>
+                </div>
             </div>
             { isModalVisible && <ModalWindow onModalVisible={setIsModalVisible} children={ modalContent }/> }
         </>
