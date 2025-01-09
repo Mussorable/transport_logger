@@ -1,12 +1,13 @@
 import moment from "moment";
 import { ChangeEvent, FormEvent, KeyboardEvent, useState, FocusEvent } from "react";
 import { generateTimeFormat } from "../../../utils/utils.tsx";
+import { EditingTruck } from "../TableModern.tsx";
 
 interface AddRouteProps {
-    truckNumber: string;
-    onRouteAdded: (route: Route, truckNumber: string, day: string) => void;
-    day: string;
+    editingTruck: EditingTruck;
+    onRouteAdded: (route: Route, certainLegend: EditingTruck) => void;
     onCancel: () => void;
+    existedRoute?: Route;
 }
 export interface Route {
     date: string;
@@ -15,26 +16,33 @@ export interface Route {
     status: string;
 }
 
-function AddRoute({ truckNumber, onRouteAdded, day, onCancel }: AddRouteProps) {
-    const [newRoute, setNewRoute] = useState<Route>({
-        date: day,
-        deliveryTime: moment().format("HH:mm"),
+function AddRoute({ editingTruck, onRouteAdded, onCancel, existedRoute }: AddRouteProps) {
+    const [newRoute, setNewRoute] = useState<Route>(existedRoute ? existedRoute : {
+        date: editingTruck.day,
+        deliveryTime: generateTimeFormat(moment().format("HH:mm")),
         to: "",
-        status: "LOADING",
+        status: "LOADING"
     });
+
+    const validateCity = (city: string) => {
+        const regex = /^[A-Za-z\s-]{0,16}$/;
+        if (city.length > 10) return city.slice(0, 16);
+        return regex.test(city) ? city : '';
+    };
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setNewRoute((prev) => {
             return {
                 ...prev,
-                [name]: name === "deliveryTime" ? generateTimeFormat(value) : value,
+                [name]: name === "deliveryTime" ? generateTimeFormat(value) :
+                    name === "to" ? validateCity(value) : value,
             }
         });
     };
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
-        onRouteAdded(newRoute, truckNumber, day);
+        onRouteAdded(newRoute, editingTruck);
     };
     const handleEscPress = (e: KeyboardEvent) => {
         if (e.key === "Escape") onCancel();
@@ -50,7 +58,7 @@ function AddRoute({ truckNumber, onRouteAdded, day, onCancel }: AddRouteProps) {
             onBlur={handleFormBlur}
             onSubmit={handleSubmit}
             onKeyDown={handleEscPress}
-            className="flex flex-col border-2 border-red-500">
+            className="flex flex-col border-2 border-red-500 max-w-full">
             <input autoFocus={true} className="w-full text-[12px] outline-none" required={ true } name="date" onChange={ handleInputChange }
                    value={ newRoute.date || moment().format("YYYY-MM-DD") } type={ "date" }/>
             <div className="flex">

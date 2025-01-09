@@ -609,6 +609,18 @@ video {
   height: 100vh;
 }
 
+.h-10 {
+  height: 2.5rem;
+}
+
+.h-5 {
+  height: 1.25rem;
+}
+
+.h-20 {
+  height: 5rem;
+}
+
 .w-1\/2 {
   width: 50%;
 }
@@ -625,6 +637,14 @@ video {
   width: 100%;
 }
 
+.w-28 {
+  width: 7rem;
+}
+
+.w-\[104px\] {
+  width: 104px;
+}
+
 .min-w-72 {
   min-width: 18rem;
 }
@@ -637,8 +657,16 @@ video {
   max-width: 42rem;
 }
 
+.max-w-full {
+  max-width: 100%;
+}
+
 .flex-1 {
   flex: 1 1 0%;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 
 .flex-col {
@@ -661,8 +689,16 @@ video {
   gap: 1rem;
 }
 
+.overflow-hidden {
+  overflow: hidden;
+}
+
 .overflow-x-hidden {
   overflow-x: hidden;
+}
+
+.overflow-y-hidden {
+  overflow-y: hidden;
 }
 
 .overflow-y-scroll {
@@ -826,6 +862,11 @@ video {
   padding-bottom: 1.5rem;
 }
 
+.px-1 {
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
 .text-center {
   text-align: center;
 }
@@ -839,12 +880,12 @@ video {
   line-height: 2.25rem;
 }
 
-.text-\[12px\] {
-  font-size: 12px;
+.text-\[10\.5px\] {
+  font-size: 10.5px;
 }
 
-.text-\[13\.5px\] {
-  font-size: 13.5px;
+.text-\[12px\] {
+  font-size: 12px;
 }
 
 .text-sm {
@@ -857,16 +898,28 @@ video {
   line-height: 1.75rem;
 }
 
-.text-\[13px\] {
-  font-size: 13px;
+.text-\[0\.65rem\] {
+  font-size: 0.65rem;
 }
 
-.text-\[11px\] {
-  font-size: 11px;
+.text-\[0\.75rem\] {
+  font-size: 0.75rem;
 }
 
-.text-\[10\.5px\] {
-  font-size: 10.5px;
+.text-\[0\.7rem\] {
+  font-size: 0.7rem;
+}
+
+.text-\[0\.8rem\] {
+  font-size: 0.8rem;
+}
+
+.text-\[0\.78rem\] {
+  font-size: 0.78rem;
+}
+
+.text-\[0\.77rem\] {
+  font-size: 0.77rem;
 }
 
 .font-bold {
@@ -883,6 +936,14 @@ video {
 
 .font-semibold {
   font-weight: 600;
+}
+
+.font-\[0\.65rem\] {
+  font-weight: 0.65rem;
+}
+
+.font-\[0\2c 65rem\] {
+  font-weight: 0,65rem;
 }
 
 .italic {
@@ -931,6 +992,16 @@ video {
 .hover\:bg-gray-600:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(75 85 99 / var(--tw-bg-opacity, 1));
+}
+
+.hover\:bg-blue-200:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(191 219 254 / var(--tw-bg-opacity, 1));
+}
+
+.hover\:bg-green-200:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(187 247 208 / var(--tw-bg-opacity, 1));
 }
 
 .focus\:border-blue-400:focus {

@@ -1,8 +1,6 @@
 import rightArrow from '../../assets/right-arrow.svg';
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import ModalWindow from "../../utils/ModalWindow.tsx";
-// import AddTruck from "../../utils/modals/AddTruck.tsx";
-
 import moment from "moment/min/moment-with-locales";
 import AddRoute, { Route } from "./legend/AddRoute.tsx";
 import { generateWeek } from "../../utils/utils.tsx";
@@ -13,6 +11,10 @@ const browserLanguage= navigator.language;
 export interface Legend {
     number: string;
     workLegend: Route[];
+}
+export interface EditingTruck {
+    truckNumber: string;
+    day: string;
 }
 
 function TableModern() {
@@ -104,20 +106,42 @@ function TableModern() {
             ]
         }
     ]);
-    const [editingTruck, setEditingTruck] = useState<{ truckNumber: string; day: string } | null>(null);
+    const [editingTruck, setEditingTruck] = useState<EditingTruck | null>(null);
 
-    const handleAddRoute = (route: Route, truckNumber: string, day: string) => {
+    useEffect(() => {
+        console.log(legend);
+    }, [legend]);
+
+    const handleAddRoute = (route: Route, certainLegend: EditingTruck) => {
+        const { truckNumber } = certainLegend;
         setLegend((prevLegend) =>
-            prevLegend.map((truck) =>
-                truck.number === truckNumber
-                    ? { ...truck, workLegend: [...truck.workLegend, route] }
-                    : truck
+            prevLegend.map((truck) => {
+                    if (truck.number === truckNumber) {
+                        const isRouteExist = truck.workLegend.some((existingRoute) => existingRoute.date === route.date);
+
+                        // If route already exists just update fields, otherwise add new legend
+                        const updatedLegend = isRouteExist
+                            ? truck.workLegend.map((existingRoute) =>
+                                    existingRoute.date === route.date
+                                        ? { ...existingRoute, ...route }
+                                        : existingRoute
+                            ) : [...truck.workLegend, route];
+                        return { ...truck, workLegend: updatedLegend };
+                    }
+                    return truck;
+                }
             )
         );
-        setEditingTruck({ truckNumber, day });
+        setEditingTruck(null);
     };
     const handleCancelAddRoute = () => {
             setEditingTruck(null);
+    };
+    const handleExistedRouteClick = (truckNumber: string, day: string) => {
+        setEditingTruck({
+            truckNumber,
+            day
+        });
     };
 
     const handleAddTruckClick = () => {
@@ -135,7 +159,7 @@ function TableModern() {
                             return (
                                 <div key={ day } className="flex">
                                     <div className="w-4 border-l border-gray-400 bg-gray-600"></div>
-                                    <div className="border-l border-gray-400 w-24"><span
+                                    <div className="border-l border-gray-400 w-[104px] over"><span
                                         className="text-white block text-center">{ moment(day).format('DD.MM ddd').toUpperCase() }</span>
                                     </div>
                                 </div>
@@ -158,17 +182,29 @@ function TableModern() {
                                                 className="w-4 border-l border-gray-400 bg-gray-600 flex justify-center align-middle">
                                                 <img src={ rightArrow } alt=""/>
                                             </div>
-                                            <div className="border-l border-gray-400 w-24 bg-gray-700">
+                                            <div className="border-l border-gray-400 w-[104px] bg-gray-700 relative">
                                                 { truck.workLegend && truck.workLegend.map((route, index) => {
                                                     if (route.date === day) {
                                                         return (
-                                                            <div key={ index } className="flex">
-                                                                <div
-                                                                    className={ `text-sm font-light px-2 w-full overflow-x-hidden ${ route.status === 'DONE' ? 'bg-gray-600 text-gray-900' : route.status === 'LOADING' ? 'bg-green-300' : 'bg-blue-300' }` }>
-                                                                    <p>{ moment(route.date).format("DD.MM ddd").toUpperCase() }</p>
-                                                                    <p>{ `${ route.to[0].toUpperCase() }${ route.to.slice(1).toLowerCase() }` }</p>
-                                                                    <p>{ route.deliveryTime }</p>
-                                                                </div>
+                                                            <div key={ index } onClick={() => handleExistedRouteClick(truck.number, day)} className="flex h-full">
+                                                                { hasRoute && editingTruck?.truckNumber === truck.number && editingTruck.day === day ?
+                                                                    (
+                                                                        <AddRoute
+                                                                            key={ `${ truck.number }-${ day }` }
+                                                                            editingTruck={ editingTruck }
+                                                                            onRouteAdded={ handleAddRoute }
+                                                                            onCancel={ handleCancelAddRoute }
+                                                                            existedRoute={ route }
+                                                                        />
+                                                                    ) :
+                                                                    (
+                                                                        <div
+                                                                            className={ `text-sm font-light px-1 w-full h-full overflow-x-hidden ${ route.status === 'DONE' ? 'bg-gray-600 text-gray-900' : route.status === 'LOADING' ? 'bg-green-300 hover:bg-green-200 cursor-pointer' : 'bg-blue-300 hover:bg-blue-200 cursor-pointer' }` }>
+                                                                            <p className="block w-full h-5 overflow-hidden text-[0.8rem]">{ `${ route.to[0].toUpperCase() }${ route.to.slice(1).toLowerCase() }` }</p>
+                                                                            <p>{ route.deliveryTime }</p>
+                                                                        </div>
+                                                                    )
+                                                                }
                                                             </div>
                                                         )
                                                     }
@@ -178,8 +214,7 @@ function TableModern() {
                                                         (
                                                             <AddRoute
                                                                 key={ `${ truck.number }-${ day }` }
-                                                                day={ day }
-                                                                truckNumber={ truck.number }
+                                                                editingTruck={ editingTruck }
                                                                 onRouteAdded={ handleAddRoute }
                                                                 onCancel={ handleCancelAddRoute }
                                                             />
