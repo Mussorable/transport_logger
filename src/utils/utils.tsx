@@ -28,3 +28,11 @@ export const generateTimeFormat = (value: string) => {
 
     return restrictedValue ? restrictedValue : '';
 };
+
+export const handleBoolStateWithTimeout = (setState: (val: string | boolean) => void, timeout: number, initValue: string | boolean) => {
+    setState(initValue);
+    if (typeof initValue === 'boolean')
+        setTimeout(() => setState(!initValue), timeout);
+    else
+        setTimeout(() => setState(false), timeout);
+};
