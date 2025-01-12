@@ -51,7 +51,7 @@ function TruckNote() {
     const [newNote, setNewNote] = useState<Note>(initNote);
 
     const handleNoteSubmit = (e: FormEvent) => {
-        const { date, note, isImportant, type } = newNote;
+        const { note } = newNote;
         e.preventDefault();
 
         if (note.length === 0 || note.length > 70) {
@@ -76,6 +76,13 @@ function TruckNote() {
     };
     const handleNoteChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.currentTarget.value;
+        if (value[0] === '!')
+            setNewNote(oldNote => {
+                return {
+                    ...oldNote,
+                    isImportant: true,
+                }
+            });
         if (value.length > 70) return setIsError("Note must be between 1 and 100 characters long");
         if (isError && value.length < 100) return setIsError(false);
         setNewNote(oldNote => {
@@ -83,6 +90,16 @@ function TruckNote() {
                 ...oldNote,
                 note: value,
             }
+        });
+    };
+    const handleNoteTypeChange = (e: ChangeEvent<HTMLSelectElement>) => {
+        const value = e.currentTarget.value;
+
+        setNewNote(oldNote => {
+            return {
+              ...oldNote,
+              type: value as NoteType,
+            };
         });
     };
 
@@ -94,8 +111,9 @@ function TruckNote() {
             <div className="flex-1">
                 <NoteScreen notes={notes} />
             </div>
-            <div>
-                <form onSubmit={ handleNoteSubmit } action="" className="flex justify-between mb-2 mt-20 px-4">
+            <div className="flex flex-col justify-start">
+                { isEditing && <span className="text-orange-300 px-4 py-2">"!" - sign before makes note important</span> }
+                <form onSubmit={ handleNoteSubmit } action="" className="flex justify-between mb-2 px-4">
                     { isEditing ?
                         <div className="flex justify-between flex-1">
                             <div>
@@ -107,18 +125,14 @@ function TruckNote() {
                             </div>
                             <div className="flex-1 flex mr-2 ">
                                 <input value={newNote.note} onChange={handleNoteChange} className={ `flex-1 mr-2 outline-none border ${isError && 'border-red-500'}` } type="text"/>
-                                <select name="" id="">
-                                    { noteTypes.map(type => {
-                                        return (
-                                            <option value={type} key={type}>{type.toLowerCase()}</option>
-                                        )
-                                    }) }
+                                <select name="" id="" value={newNote.type} onChange={ handleNoteTypeChange }>
+                                    { noteTypes.map(type => (<option value={type} key={type}>{type.toLowerCase()}</option>)) }
                                 </select>
                             </div>
                         </div>
                         :
                         <button onClick={ () => setIsEditing(true) }
-                                className="bg-gray-300 hover:bg-gray-200 border border-gray-900 px-8">Add</button>
+                                className="bg-gray-300 hover:bg-gray-200 border border-gray-900 px-8 mt-2">Add</button>
                     }
                     { (isConfirmed || isError) &&
                         (
