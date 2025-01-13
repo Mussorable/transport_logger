@@ -6,6 +6,7 @@ import AddRoute, { Route } from "./legend/AddRoute.tsx";
 import { generateWeek } from "../../utils/utils.tsx";
 import AddTruck from "../../utils/modals/AddTruck.tsx";
 import TruckNote from "./tabs/TruckNote.tsx";
+import DailyNote from "./tabs/DailyNote.tsx";
 
 const browserLanguage= navigator.language;
 
@@ -239,7 +240,7 @@ function TableModern() {
                 </div>
                 <div className="h-full w-1/2 flex flex-col border-l border-gray-200">
                     <TruckNote />
-                    <div className="bg-red-300 h-full w-full"></div>
+                    <DailyNote />
                 </div>
             </div>
             { isModalVisible && <ModalWindow onModalVisible={setIsModalVisible} children={ modalContent }/> }
