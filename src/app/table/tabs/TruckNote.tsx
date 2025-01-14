@@ -11,7 +11,11 @@ export interface Note {
     type: NoteType;
 }
 
-function TruckNote() {
+interface TruckNoteProps {
+    truckNumber: string | null;
+}
+
+function TruckNote({ truckNumber }: TruckNoteProps) {
     const noteTypes: NoteType[] = ["MAINTENANCE", "DRIVER", "ROUTE", "DONE"];
     const [isError, setIsError] = useState<string | boolean>(false);
     const [isConfirmed, setIsConfirmed] = useState<string | boolean>(false);
@@ -105,8 +109,8 @@ function TruckNote() {
 
     return (
         <div className="h-full w-full border-b border-gray-200 flex flex-col">
-            <div className="text-white text-center py-2">
-                <span className="font-bold text-xl">1E8 1856</span>
+            <div className={ `text-white text-center ${truckNumber ? 'py-2' : ''}` }>
+                <span className="font-bold text-xl">{ truckNumber }</span>
             </div>
             <div className="flex-1">
                 <NoteScreen notes={notes} />

@@ -109,6 +109,7 @@ function TableModern() {
         }
     ]);
     const [editingTruck, setEditingTruck] = useState<EditingTruck | null>(null);
+    const [pickedTruckNumber, setPickedTruckNumber] = useState<string | null>(null);
 
     const handleAddRoute = (route: Route, certainLegend: EditingTruck) => {
         const { truckNumber } = certainLegend;
@@ -141,10 +142,12 @@ function TableModern() {
             day
         });
     };
-
     const handleAddTruckClick = () => {
         setModalContent(<AddTruck setLegend={setLegend} onModalVisible={setIsModalVisible} />);
         setIsModalVisible((prev) => !prev);
+    };
+    const handleTruckClick = (truckNumber: string) => {
+        setPickedTruckNumber(truckNumber);
     };
 
     return (
@@ -168,7 +171,7 @@ function TableModern() {
                         return (
                             <div key={ truck.number }
                                  className="flex w-full bg-gray-900 font-semibold border-b border-gray-400">
-                                <div className="flex-1 text-white px-2 bg-gray-700 overflow-x-hidden hover:bg-gray-600 hover:cursor-pointer">
+                                <div onClick={() => handleTruckClick(truck.number)} className="flex-1 text-white px-2 bg-gray-700 overflow-x-hidden hover:bg-gray-600 hover:cursor-pointer">
                                     <p>{ truck.number.toUpperCase() }</p>
                                 </div>
                                 { week.map((day) => {
@@ -239,7 +242,7 @@ function TableModern() {
                     </div>
                 </div>
                 <div className="h-full w-1/2 flex flex-col border-l border-gray-200">
-                    <TruckNote />
+                    <TruckNote truckNumber={pickedTruckNumber} />
                     <DailyNote />
                 </div>
             </div>
