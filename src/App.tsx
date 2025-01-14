@@ -3,7 +3,7 @@ import Background from "./wrappers/Background.tsx";
 import AuthWrapper from "./wrappers/AuthWrapper.tsx";
 import Register from "./app/auth/Register.tsx";
 import Login from "./app/auth/Login.tsx";
-import Table from "./app/table/Table.tsx";
+import TableModern from "./app/table/TableModern.tsx";
 
 function App() {
   return (
@@ -14,7 +14,7 @@ function App() {
                 <Route path="register" element={<Register />}/>
                 <Route path="login" element={<Login />}/>
             </Route>
-            <Route path="" element={<Table />}></Route>
+            <Route path="" element={<TableModern/>} />
         </Route>
       </Routes>
     </BrowserRouter>
