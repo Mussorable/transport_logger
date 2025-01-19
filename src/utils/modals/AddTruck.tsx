@@ -7,6 +7,7 @@ interface AddTruckProps {
 }
 
 function AddTruck({ setLegend, onModalVisible }: AddTruckProps) {
+    const serverUrl = import.meta.env.VITE_SERVER_URL + import.meta.env.VITE_SERVER_PORT + '/trucks';
     const [truckNumber, setTruckNumber] = useState("");
     const [isError, setIsError] = useState<{ flag: boolean; message?: string }>({ flag: false });
 
@@ -26,6 +27,25 @@ function AddTruck({ setLegend, onModalVisible }: AddTruckProps) {
                     }
                 ]
             });
+
+            fetch(serverUrl + '/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ truckNumber }),
+                credentials: "include",
+            })
+                .then(res => {
+                    if (res.status === 200) {
+                        // window.location.reload();
+                        // return;
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    if (data?.errors) console.error(data.errors);
+                });
 
             onModalVisible(false);
         }
