@@ -28,24 +28,32 @@ function AddTruck({ setLegend, onModalVisible }: AddTruckProps) {
                 ]
             });
 
-            fetch(serverUrl + '/add', {
-                method: 'POST',
+            // fetch(serverUrl + '/add', {
+            //     method: 'POST',
+            //     headers: {
+            //         'Content-Type': 'application/json'
+            //     },
+            //     body: JSON.stringify({ truckNumber }),
+            //     credentials: "include",
+            // })
+            //     .then(res => {
+            //         if (res.status === 200) {
+            //             // window.location.reload();
+            //             // return;
+            //         }
+            //         return res.json();
+            //     })
+            //     .then(data => {
+            //         if (data?.errors) console.error(data.errors);
+            //     });
+
+            fetch(serverUrl + '/get-all', {
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ truckNumber }),
                 credentials: "include",
-            })
-                .then(res => {
-                    if (res.status === 200) {
-                        // window.location.reload();
-                        // return;
-                    }
-                    return res.json();
-                })
-                .then(data => {
-                    if (data?.errors) console.error(data.errors);
-                });
+            }).then(res => res.json()).then(data => console.log(data));
 
             onModalVisible(false);
         }

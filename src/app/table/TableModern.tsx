@@ -1,5 +1,5 @@
 import rightArrow from '../../assets/right-arrow.svg';
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import ModalWindow from "../../utils/ModalWindow.tsx";
 import moment from "moment/min/moment-with-locales";
 import AddRoute, { Route } from "./legend/AddRoute.tsx";
@@ -7,6 +7,7 @@ import { generateWeek } from "../../utils/utils.tsx";
 import AddTruck from "../../utils/modals/AddTruck.tsx";
 import TruckNote from "./tabs/TruckNote.tsx";
 import DailyNote from "./tabs/DailyNote.tsx";
+import { useAuth } from "../auth/AuthProvider.tsx";
 
 const browserLanguage= navigator.language;
 
@@ -22,6 +23,9 @@ export interface EditingTruck {
 function TableModern() {
     moment.locale(browserLanguage);
 
+    const serverUrl = import.meta.env.VITE_SERVER_URL + import.meta.env.VITE_SERVER_PORT + '/trucks';
+
+    const { isAuthenticated } = useAuth();
     const week: string[] = generateWeek();
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
     const [modalContent, setModalContent] = useState<ReactNode>(null);
@@ -110,6 +114,18 @@ function TableModern() {
     ]);
     const [editingTruck, setEditingTruck] = useState<EditingTruck | null>(null);
     const [pickedTruckNumber, setPickedTruckNumber] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            fetch(serverUrl + '/get-all', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: "include",
+            }).then(res => res.json()).then(data => console.log(data));
+        }
+    }, []);
 
     const handleAddRoute = (route: Route, certainLegend: EditingTruck) => {
         const { truckNumber } = certainLegend;
