@@ -1,38 +1,40 @@
 import DailyNoteScreen from "./DailyNoteScreen.tsx";
-import { useState, MouseEvent, ChangeEvent, FormEvent } from "react";
+import { useState, MouseEvent, ChangeEvent, FormEvent, useEffect } from "react";
+import { FetchWrapper } from "../../../utils/FetchWrapper.tsx";
 
 export interface ShortNote {
+    id: string | undefined;
     message: string;
     isImportant: boolean;
+    [key: string]: unknown;
 }
 
 function DailyNote() {
-    const initDailyNote: ShortNote[] = [
-        {
-            message: 'asd',
-            isImportant: false,
-        },
-        {
-            message: 'asd',
-            isImportant: false,
-        },
-        {
-            message: 'asd',
-            isImportant: false,
-        }
-    ];
+    const fetchWrapper = new FetchWrapper('/notes');
+
     const initNewNote: ShortNote = {
+        id: undefined,
         message: '',
         isImportant: false,
     };
     const [newNote, setNewNote] = useState<ShortNote>(initNewNote);
-    const [dailyNotes, setDailyNotes] = useState<ShortNote[]>(initDailyNote);
+    const [dailyNotes, setDailyNotes] = useState<ShortNote[]>([]);
     const [isCreating, setIsCreating] = useState<boolean>(false);
+
+    useEffect(() => {
+        fetchWrapper.get<ShortNote[]>('/get-all')
+            .then(data => setDailyNotes(data));
+    }, []);
 
     const handleFormSubmit = (e: FormEvent): void => {
         e.preventDefault();
 
-        console.log(newNote);
+        fetchWrapper.post<ShortNote>('/add', newNote)
+            .then(newNote => {
+                setDailyNotes(prev => [...prev, newNote]);
+                setIsCreating(false);
+                setNewNote(initNewNote);
+            });
     };
     const handleNewNoteMessage = (e: ChangeEvent<HTMLTextAreaElement>): void => {
         if (e.currentTarget.value[0] === '!') {

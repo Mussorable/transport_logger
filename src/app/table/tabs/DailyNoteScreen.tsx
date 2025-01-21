@@ -1,5 +1,6 @@
 import { ShortNote } from "./DailyNote.tsx";
 import { ChangeEvent, FormEvent, KeyboardEvent, useState } from "react";
+import { FetchWrapper } from "../../../utils/FetchWrapper.tsx";
 
 
 interface DailyNoteProps {
@@ -8,6 +9,7 @@ interface DailyNoteProps {
 }
 
 function DailyNoteScreen({ dailyNotes, setDailyNotes }: DailyNoteProps) {
+    const fetchWrapper = new FetchWrapper('/notes');
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [editingNote, setEditingNote] = useState<ShortNote | null>(null);
 
@@ -15,16 +17,27 @@ function DailyNoteScreen({ dailyNotes, setDailyNotes }: DailyNoteProps) {
         setEditingNote(note);
         setEditingIndex(index);
     };
-    const handleSubmitEditingNote = (e: FormEvent, index: number): void => {
+    const handleSubmitEditingNote = (e: FormEvent): void => {
         e.preventDefault();
 
-        setDailyNotes((oldNotes: ShortNote[]) => {
-            return oldNotes.map((note, i) =>
-                i === index && editingNote ? (editingNote.message.length < 1) ?
-                    { ...editingNote, message: '(empty)' } : editingNote
-                    : note
-            )
-        });
+        if (!editingNote || !editingNote.id) return;
+
+        if (editingNote.message.length < 1) {
+            fetchWrapper.delete<ShortNote>(`/${editingNote.id}`)
+                .then(() => {
+                    setDailyNotes((oldNotes: ShortNote[]) => oldNotes.filter((note) => note.id !== editingNote.id));
+                });
+        } else {
+            fetchWrapper.put<ShortNote>(`/${editingNote.id}`, editingNote)
+                .then((updatedNote) => {
+                    setDailyNotes((oldNotes: ShortNote[]) => {
+                        return oldNotes.map((note) =>
+                            note.id === updatedNote.id
+                                ? { ...updatedNote, message: updatedNote.message } : note
+                        )
+                    });
+                });
+        }
 
         setEditingNote(null);
         setEditingIndex(null);
@@ -52,10 +65,10 @@ function DailyNoteScreen({ dailyNotes, setDailyNotes }: DailyNoteProps) {
         <div className="w-full">
             <ul>
                 { dailyNotes && dailyNotes.map((note, index) => (
-                    <li key={ `${ index }-daily-note` } onClick={ () => handleNoteClick(note, index) }
+                    <li key={ `${ note.id }-daily-note` } onClick={ () => handleNoteClick(note, index) }
                         className={ `cursor-pointer ${ !editingNote ? 'px-4' : '' } block ${note.isImportant ? ' bg-red-700 hover:bg-red-600' : 'bg-gray-500 hover:bg-gray-400'} border-b-2 border-gray-900` }>
                         { editingNote && editingIndex === index ? (
-                            <form onSubmit={ e => handleSubmitEditingNote(e, index) } action="">
+                            <form onSubmit={ e => handleSubmitEditingNote(e) } action="">
                                 <textarea onKeyDown={ handleKeyEnter } value={ editingNote.message }
                                           onChange={ handleTextChange } autoFocus={ true }
                                           className="resize-none w-full h-auto scrollbar-hide overflow-auto"></textarea>
