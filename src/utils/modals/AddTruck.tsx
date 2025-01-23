@@ -1,5 +1,6 @@
 import { ChangeEvent, FormEvent, useState } from "react";
 import { Legend } from "../../app/table/TableModern.tsx";
+import { FetchWrapper } from "../FetchWrapper.tsx";
 
 interface AddTruckProps {
     setLegend: (updater: (prevLegend: Legend[]) => Legend[]) => void;
@@ -7,68 +8,49 @@ interface AddTruckProps {
 }
 
 function AddTruck({ setLegend, onModalVisible }: AddTruckProps) {
-    const serverUrl = import.meta.env.VITE_SERVER_URL + import.meta.env.VITE_SERVER_PORT + '/trucks';
-    const [truckNumber, setTruckNumber] = useState("");
+    const fetchWrapper = new FetchWrapper('/trucks');
+    const [truckNumber, setTruckNumber] = useState<string>("");
     const [isError, setIsError] = useState<{ flag: boolean; message?: string }>({ flag: false });
 
     const handleLegendSubmit = (e: FormEvent) => {
         e.preventDefault();
 
-        const currentTruckNumber = truckNumber.replace(/\s+/g, '');
-        const regex = /^[A-Za-z0-9]{6,8}$/;
+        const regex = /^[A-Za-z0-9\s]{6,8}$/;
 
-        if (regex.test(currentTruckNumber)) {
-            setLegend((prevLegend) => {
-                return [
-                    ...prevLegend,
-                    {
-                        number: truckNumber,
-                        workLegend: []
-                    }
-                ]
-            });
-
-            // fetch(serverUrl + '/add', {
-            //     method: 'POST',
-            //     headers: {
-            //         'Content-Type': 'application/json'
-            //     },
-            //     body: JSON.stringify({ truckNumber }),
-            //     credentials: "include",
-            // })
-            //     .then(res => {
-            //         if (res.status === 200) {
-            //             // window.location.reload();
-            //             // return;
-            //         }
-            //         return res.json();
-            //     })
-            //     .then(data => {
-            //         if (data?.errors) console.error(data.errors);
-            //     });
-
-            fetch(serverUrl + '/get-all', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: "include",
-            }).then(res => res.json()).then(data => console.log(data));
-
-            onModalVisible(false);
+        if (regex.test(truckNumber)) {
+            fetchWrapper.post<Legend>('/add', { truckNumber })
+                .then((newTruck) => {
+                    setLegend((oldLegend) => {
+                       return [
+                           ...oldLegend,
+                           newTruck
+                       ]
+                    });
+                    onModalVisible(false);
+                });
         }
     };
     const handleTruckNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const value = e.currentTarget.value.replace(/\s+/g, '');
-        const regex = /^[A-Za-z0-9]{6,8}$/;
+        const value = e.currentTarget.value.toUpperCase();
+        const cleanedValue = value.trim().replace(/\s{2,}/g, ' ');
+        const regex = /^[A-Za-z0-9\s]{6,8}$/;
 
         setTruckNumber(value);
-        if (!regex.test(value)) {
-            setIsError({ flag: true, message: "Truck number must be 6-8 characters long" });
+
+        if (cleanedValue.length < 6 || cleanedValue.length > 8) {
+            setIsError({
+                flag: true,
+                message: "Truck number must be 6-8 characters long (excluding spaces)",
+            });
+        } else if (!regex.test(value)) {
+            setIsError({
+                flag: true,
+                message: "Truck number can only include letters, numbers, and spaces",
+            });
         } else {
             setIsError({ flag: false });
         }
-    }
+    };
 
     return (
         <form onSubmit={handleLegendSubmit} action="" method="POST">

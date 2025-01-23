@@ -62,16 +62,17 @@ function DailyNoteScreen({ dailyNotes, setDailyNotes }: DailyNoteProps) {
     };
 
     return (
-        <div className="w-full">
+        <div className="w-full z-[1]">
             <ul>
                 { dailyNotes && dailyNotes.map((note, index) => (
                     <li key={ `${ note.id }-daily-note` } onClick={ () => handleNoteClick(note, index) }
                         className={ `cursor-pointer ${ !editingNote ? 'px-4' : '' } block ${note.isImportant ? ' bg-red-700 hover:bg-red-600' : 'bg-gray-500 hover:bg-gray-400'} border-b-2 border-gray-900` }>
                         { editingNote && editingIndex === index ? (
                             <form onSubmit={ e => handleSubmitEditingNote(e) } action="">
-                                <textarea onKeyDown={ handleKeyEnter } value={ editingNote.message }
+                                <textarea placeholder={ !editingNote.message ? "Empty note will be deleted" : '' }
+                                          onKeyDown={ handleKeyEnter } value={ editingNote.message }
                                           onChange={ handleTextChange } autoFocus={ true }
-                                          className="resize-none w-full h-auto scrollbar-hide overflow-auto"></textarea>
+                                          className="resize-none placeholder:italic w-full h-auto scrollbar-hide overflow-auto"></textarea>
                                 <button type="submit" className="hidden"></button>
                             </form>
                         ) : (
