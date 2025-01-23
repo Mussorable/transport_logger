@@ -16,7 +16,7 @@ const AppInitializer = () => {
             })
             .catch(() => setAuthenticated(false))
             .finally(() => setIsLoading(false));
-    }, [setAuthenticated]);
+    }, [setAuthenticated, setIsLoading]);
 
     return null;
 };
