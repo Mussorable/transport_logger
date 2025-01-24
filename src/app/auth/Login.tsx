@@ -1,14 +1,18 @@
 import { ChangeEvent, FormEvent, useState } from "react";
 import { Link } from "react-router-dom";
+import { FetchWrapper } from "../../utils/FetchWrapper.tsx";
+import { ServerResponse } from "./AppInitializer.tsx";
+import { useNotification } from "../../utils/NotificationContext.tsx";
 
 interface LoginForm {
     email: string;
     password: string;
+    [key: string]: unknown;
 }
 
 function Login() {
-    const serverUrl = import.meta.env.VITE_SERVER_URL + import.meta.env.VITE_SERVER_PORT + '/auth';
-
+    const fetchWrapper = new FetchWrapper('/auth');
+    const { addNotification } = useNotification();
     const initialLoginForm: LoginForm = {
         email: '',
         password: '',
@@ -18,26 +22,11 @@ function Login() {
     const handleSubmitForm = (event: FormEvent) => {
         event.preventDefault();
 
-        fetch(serverUrl + '/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                email: loginForm.email,
-                password: loginForm.password,
-            }),
-            credentials: 'include',
-        })
-            .then(res => {
-                if (res.status === 200) {
-                    window.location.reload();
-                    return;
-                }
-                return res.json();
-            })
-            .then(data => {
-                if (data?.errors) console.error(data.errors);
+        fetchWrapper.post<ServerResponse>('/login', loginForm)
+            .then((response) => {
+                const { status, message } = response;
+                if (status === 'success') window.location.reload();
+                addNotification(status, message);
             });
     };
     const handleChangeInput = (event: ChangeEvent<HTMLInputElement>) => {

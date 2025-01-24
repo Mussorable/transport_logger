@@ -1,20 +1,22 @@
 import DailyNoteScreen from "./DailyNoteScreen.tsx";
 import { useState, MouseEvent, ChangeEvent, FormEvent, useEffect } from "react";
 import { FetchWrapper } from "../../../utils/FetchWrapper.tsx";
+import { useNotification } from "../../../utils/NotificationContext.tsx";
+import { ServerResponse } from "../../auth/AppInitializer.tsx";
 
 export interface ShortNote {
     id: string | undefined;
-    message: string;
+    noteMessage: string;
     isImportant: boolean;
     [key: string]: unknown;
 }
 
 function DailyNote() {
     const fetchWrapper = new FetchWrapper('/notes');
-
+    const { addNotification } = useNotification();
     const initNewNote: ShortNote = {
         id: undefined,
-        message: '',
+        noteMessage: '',
         isImportant: false,
     };
     const [newNote, setNewNote] = useState<ShortNote>(initNewNote);
@@ -23,28 +25,31 @@ function DailyNote() {
 
     useEffect(() => {
         fetchWrapper.get<ShortNote[]>('/get-all')
-            .then(data => setDailyNotes(data));
+            .then(notes => setDailyNotes(notes));
     }, []);
 
     const handleFormSubmit = (e: FormEvent): void => {
         e.preventDefault();
 
-        if (!newNote.message) {
+        if (!newNote.noteMessage) {
             return setIsCreating(false);
         }
 
-        fetchWrapper.post<ShortNote>('/add', newNote)
-            .then(newNote => {
-                setDailyNotes(prev => [...prev, newNote]);
+        fetchWrapper.post<ShortNote & ServerResponse>('/add', newNote)
+            .then(response => {
+                console.log(response);
+                const { status, message, ...addedNote } = response;
+                setDailyNotes(prev => [...prev, addedNote as ShortNote]);
                 setIsCreating(false);
                 setNewNote(initNewNote);
+                addNotification(status, message);
             });
     };
     const handleNewNoteMessage = (e: ChangeEvent<HTMLTextAreaElement>): void => {
         if (e.currentTarget.value[0] === '!') {
             setNewNote(prev => ({ ...prev, isImportant: true }));
         } else setNewNote(prev => ({ ...prev, isImportant: false }));
-        setNewNote(prev => ({ ...prev, message: e.target.value }));
+        setNewNote(prev => ({ ...prev, noteMessage: e.target.value }));
     };
     const handleFormReset = (e: MouseEvent<HTMLButtonElement>): void => {
         e.preventDefault();
@@ -75,7 +80,7 @@ function DailyNote() {
                                 <button onClick={handleFormReset} className="bg-gray-400 hover:bg-gray-200 px-4 mr-2">Cancel</button>
                                 <span className="italic text-orange-300 text-md">Use ! sign to make note important</span>
                             </div>
-                            <textarea name="" id="" value={newNote.message} onChange={handleNewNoteMessage} className="resize-none"></textarea>
+                            <textarea name="" id="" value={newNote.noteMessage} onChange={handleNewNoteMessage} className="resize-none"></textarea>
                         </form>
                     </div>
                 )

@@ -7,26 +7,31 @@ import TableModern from "./app/table/TableModern.tsx";
 import { AuthProvider } from "./app/auth/AuthProvider.tsx";
 import ProtectedRoute from "./app/auth/ProtectedRoute.tsx";
 import AppInitializer from "./app/auth/AppInitializer.tsx";
+import NotificationWindow from "./utils/NotificationWindow.tsx";
+import { NotificationProvider } from "./utils/NotificationContext.tsx";
 
 function App() {
     return (
         <AuthProvider>
-            <AppInitializer />
-            <BrowserRouter>
-                <Routes>
-                    <Route path="/" element={<Background />}>
-                        <Route path="auth/" element={<AuthWrapper />}>
-                            <Route path="register" element={<Register />}/>
-                            <Route path="login" element={<Login />}/>
+            <NotificationProvider>
+                <AppInitializer />
+                <NotificationWindow />
+                <BrowserRouter>
+                    <Routes>
+                        <Route path="/" element={<Background />}>
+                            <Route path="auth/" element={<AuthWrapper />}>
+                                <Route path="register" element={<Register />}/>
+                                <Route path="login" element={<Login />}/>
+                            </Route>
+                            <Route path="/" element={
+                                <ProtectedRoute>
+                                    <TableModern/>
+                                </ProtectedRoute>
+                            } />
                         </Route>
-                        <Route path="/" element={
-                            <ProtectedRoute>
-                                <TableModern/>
-                            </ProtectedRoute>
-                        } />
-                    </Route>
-                </Routes>
-            </BrowserRouter>
+                    </Routes>
+                </BrowserRouter>
+            </NotificationProvider>
         </AuthProvider>
     )
 }

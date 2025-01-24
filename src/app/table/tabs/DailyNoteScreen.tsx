@@ -22,7 +22,7 @@ function DailyNoteScreen({ dailyNotes, setDailyNotes }: DailyNoteProps) {
 
         if (!editingNote || !editingNote.id) return;
 
-        if (editingNote.message.length < 1) {
+        if (editingNote.noteMessage.length < 1) {
             fetchWrapper.delete<ShortNote>(`/${editingNote.id}`)
                 .then(() => {
                     setDailyNotes((oldNotes: ShortNote[]) => oldNotes.filter((note) => note.id !== editingNote.id));
@@ -33,7 +33,7 @@ function DailyNoteScreen({ dailyNotes, setDailyNotes }: DailyNoteProps) {
                     setDailyNotes((oldNotes: ShortNote[]) => {
                         return oldNotes.map((note) =>
                             note.id === updatedNote.id
-                                ? { ...updatedNote, message: updatedNote.message } : note
+                                ? { ...updatedNote, noteMessage: updatedNote.noteMessage } : note
                         )
                     });
                 });
@@ -48,7 +48,7 @@ function DailyNoteScreen({ dailyNotes, setDailyNotes }: DailyNoteProps) {
             if (oldNote)
                 return {
                     ...oldNote,
-                    message: value,
+                    noteMessage: value,
                     isImportant: value[0] === '!',
                 }
             else return null;
@@ -69,14 +69,14 @@ function DailyNoteScreen({ dailyNotes, setDailyNotes }: DailyNoteProps) {
                         className={ `cursor-pointer ${ !editingNote ? 'px-4' : '' } block ${note.isImportant ? ' bg-red-700 hover:bg-red-600' : 'bg-gray-500 hover:bg-gray-400'} border-b-2 border-gray-900` }>
                         { editingNote && editingIndex === index ? (
                             <form onSubmit={ e => handleSubmitEditingNote(e) } action="">
-                                <textarea placeholder={ !editingNote.message ? "Empty note will be deleted" : '' }
-                                          onKeyDown={ handleKeyEnter } value={ editingNote.message }
+                                <textarea placeholder={ !editingNote.noteMessage ? "Empty note will be deleted" : '' }
+                                          onKeyDown={ handleKeyEnter } value={ editingNote.noteMessage }
                                           onChange={ handleTextChange } autoFocus={ true }
                                           className="resize-none placeholder:italic w-full h-auto scrollbar-hide overflow-auto"></textarea>
                                 <button type="submit" className="hidden"></button>
                             </form>
                         ) : (
-                            <p className="text-white whitespace-pre-wrap">{ note.message }</p>
+                            <p className="text-white whitespace-pre-wrap">{ note.noteMessage }</p>
                         ) }
                     </li>
                 )) }

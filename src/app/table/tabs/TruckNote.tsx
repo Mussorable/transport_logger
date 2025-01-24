@@ -3,6 +3,8 @@ import { handleBoolStateWithTimeout } from "../../../utils/utils.tsx";
 import NoteScreen from "./NoteScreen.tsx";
 import moment from "moment";
 import { FetchWrapper } from "../../../utils/FetchWrapper.tsx";
+import { ServerResponse } from "../../auth/AppInitializer.tsx";
+import { useNotification } from "../../../utils/NotificationContext.tsx";
 
 type NoteType = "MAINTENANCE" | "DRIVER" | "ROUTE" | "DONE";
 export interface Note {
@@ -23,6 +25,7 @@ interface TruckNoteResponse {
 }
 
 function TruckNote({ truckId }: TruckNoteProps) {
+    const { addNotification } = useNotification();
     const fetchWrapper = new FetchWrapper('/trucks');
     const noteTypes: NoteType[] = ["MAINTENANCE", "DRIVER", "ROUTE", "DONE"];
     const [isError, setIsError] = useState<string | boolean>(false);
@@ -57,14 +60,17 @@ function TruckNote({ truckId }: TruckNoteProps) {
             return;
         }
 
-        fetchWrapper.post<Note>(`/${truckId}/add-record`, newNote)
-            .then(record => {
+        fetchWrapper.post<Note & ServerResponse>(`/${truckId}/add-record`, newNote)
+            .then((response) => {
+                console.log(response);
+                const { status, message, ...record } = response;
                 setNotes(oldNotes => {
                     return [
                         ...oldNotes,
-                        record
+                        record as Note,
                     ]
                 });
+                addNotification(status, message);
             })
 
         handleBoolStateWithTimeout(setIsConfirmed, 4000, "Note saved successfully");

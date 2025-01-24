@@ -1,22 +1,33 @@
 import { useEffect } from "react";
 import { useAuth } from "./AuthProvider.tsx";
+import { FetchWrapper } from "../../utils/FetchWrapper.tsx";
+import { useNotification } from "../../utils/NotificationContext.tsx";
+
+interface ServerError {
+    message: string;
+}
+
+export interface ServerResponse {
+    status: 'success' | 'error' | 'warning';
+    message: string;
+    errors?: ServerError[];
+}
 
 const AppInitializer = () => {
-    const serverUrl = import.meta.env.VITE_SERVER_URL + import.meta.env.VITE_SERVER_PORT + '/trucks';
+    const fetchWrapper = new FetchWrapper('/trucks');
     const { setAuthenticated, setIsLoading } = useAuth();
+    const { addNotification } = useNotification();
 
     useEffect(() => {
-        fetch(serverUrl + "/validation", { credentials: "include" })
-            .then((res) => {
-                if (res.ok) {
-                    setAuthenticated(true);
-                } else {
-                    setAuthenticated(false);
-                }
+        fetchWrapper.get<ServerResponse>('/validation')
+            .then((response) => {
+                const { status, message } = response;
+                setAuthenticated(response.status === 'success');
+                addNotification(status, message);
             })
             .catch(() => setAuthenticated(false))
             .finally(() => setIsLoading(false));
-    }, [setAuthenticated, setIsLoading]);
+    }, []);
 
     return null;
 };

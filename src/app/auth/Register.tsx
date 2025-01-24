@@ -1,15 +1,21 @@
 import { ChangeEvent, FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FetchWrapper } from "../../utils/FetchWrapper.tsx";
+import { ServerResponse } from "./AppInitializer.tsx";
+import { useNotification } from "../../utils/NotificationContext.tsx";
 
 interface RegistrationForm {
     fname: string;
     sname: string;
     email: string;
     password: string;
+    [key: string]: unknown;
 }
 
 function Register() {
-    const serverUrl = import.meta.env.VITE_SERVER_URL + import.meta.env.VITE_SERVER_PORT + '/auth';
+    const { addNotification } = useNotification();
+    const fetchWrapper = new FetchWrapper('/auth');
+    // const serverUrl = import.meta.env.VITE_SERVER_URL + import.meta.env.VITE_SERVER_PORT + '/auth';
     const navigate = useNavigate();
 
     const initialRegistrationForm: RegistrationForm = { fname: '', sname: '', email: '', password: '', };
@@ -18,27 +24,33 @@ function Register() {
     const handleSubmitForm = (event: FormEvent) => {
         event.preventDefault();
 
-        fetch(serverUrl + '/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                fname: registrationForm.fname,
-                sname: registrationForm.sname,
-                email: registrationForm.email,
-                password: registrationForm.password,
-            }),
-            credentials: 'include',
-        })
-            .then(res => {
-                if (res.status === 200) {
-                    navigate('/auth/login');
-                }
-
-                return res.json();
+        fetchWrapper.post<ServerResponse>('/register', registrationForm)
+            .then((response) => {
+                const { status, message } = response;
+                if (response.status === 'success') navigate('/auth/login');
+                addNotification(status, message);
             })
-            .then(data => { if (data.errors) console.error(data); });
+        // fetch(serverUrl + '/register', {
+        //     method: 'POST',
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //     },
+        //     body: JSON.stringify({
+        //         fname: registrationForm.fname,
+        //         sname: registrationForm.sname,
+        //         email: registrationForm.email,
+        //         password: registrationForm.password,
+        //     }),
+        //     credentials: 'include',
+        // })
+        //     .then(res => {
+        //         if (res.status === 200) {
+        //             navigate('/auth/login');
+        //         }
+        //
+        //         return res.json();
+        //     })
+        //     .then(data => { if (data.errors) console.error(data); });
     };
     const handleChangeInput = (event: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;

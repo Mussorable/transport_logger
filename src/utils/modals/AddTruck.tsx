@@ -1,6 +1,8 @@
 import { ChangeEvent, FormEvent, useState } from "react";
 import { Legend } from "../../app/table/TableModern.tsx";
 import { FetchWrapper } from "../FetchWrapper.tsx";
+import { useNotification } from "../NotificationContext.tsx";
+import { ServerResponse } from "../../app/auth/AppInitializer.tsx";
 
 interface AddTruckProps {
     setLegend: (updater: (prevLegend: Legend[]) => Legend[]) => void;
@@ -8,6 +10,7 @@ interface AddTruckProps {
 }
 
 function AddTruck({ setLegend, onModalVisible }: AddTruckProps) {
+    const { addNotification } = useNotification();
     const fetchWrapper = new FetchWrapper('/trucks');
     const [truckNumber, setTruckNumber] = useState<string>("");
     const [isError, setIsError] = useState<{ flag: boolean; message?: string }>({ flag: false });
@@ -18,15 +21,17 @@ function AddTruck({ setLegend, onModalVisible }: AddTruckProps) {
         const regex = /^[A-Za-z0-9\s]{6,8}$/;
 
         if (regex.test(truckNumber)) {
-            fetchWrapper.post<Legend>('/add', { truckNumber })
-                .then((newTruck) => {
+            fetchWrapper.post<Legend & ServerResponse>('/add', { truckNumber })
+                .then((response) => {
+                    const { status, message, ...addedTruck } = response;
                     setLegend((oldLegend) => {
                        return [
                            ...oldLegend,
-                           newTruck
+                           addedTruck as Legend
                        ]
                     });
                     onModalVisible(false);
+                    addNotification(status, message);
                 });
         }
     };
