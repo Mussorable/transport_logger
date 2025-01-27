@@ -7,9 +7,10 @@ import { ServerResponse } from "../../app/auth/AppInitializer.tsx";
 interface AddTruckProps {
     setLegend: (updater: (prevLegend: Legend[]) => Legend[]) => void;
     onModalVisible: (value: boolean) => void;
+    legend: Legend[];
 }
 
-function AddTruck({ setLegend, onModalVisible }: AddTruckProps) {
+function AddTruck({ setLegend, onModalVisible, legend }: AddTruckProps) {
     const { addNotification } = useNotification();
     const fetchWrapper = new FetchWrapper('/trucks');
     const [truckNumber, setTruckNumber] = useState<string>("");
@@ -21,18 +22,29 @@ function AddTruck({ setLegend, onModalVisible }: AddTruckProps) {
         const regex = /^[A-Za-z0-9\s]{6,8}$/;
 
         if (regex.test(truckNumber)) {
-            fetchWrapper.post<Legend & ServerResponse>('/add', { truckNumber })
-                .then((response) => {
-                    const { status, message, ...addedTruck } = response;
-                    setLegend((oldLegend) => {
-                       return [
-                           ...oldLegend,
-                           addedTruck as Legend
-                       ]
+            const clearedTruckNumber = truckNumber.replace(/\s/g, "");
+            const isDuplicate = legend.some((truck) => truck.number.replace(/\s/g, "") === clearedTruckNumber);
+            if (isDuplicate) {
+                addNotification('error', 'Current truck already exists')
+            } else {
+                fetchWrapper.post<Legend & ServerResponse>('/add', {truckNumber})
+                    .then((response) => {
+                        const {status, message, ...addedTruck} = response;
+                        setLegend((oldLegend) => {
+                            return [
+                                ...oldLegend,
+                                addedTruck as Legend
+                            ]
+                        });
+                        addNotification(status, message);
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        addNotification('error', 'Error while adding truck');
                     });
-                    onModalVisible(false);
-                    addNotification(status, message);
-                });
+            }
+
+            onModalVisible(false);
         }
     };
     const handleTruckNumberChange = (e: ChangeEvent<HTMLInputElement>) => {

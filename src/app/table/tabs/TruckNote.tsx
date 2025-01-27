@@ -5,26 +5,28 @@ import moment from "moment";
 import { FetchWrapper } from "../../../utils/FetchWrapper.tsx";
 import { ServerResponse } from "../../auth/AppInitializer.tsx";
 import { useNotification } from "../../../utils/NotificationContext.tsx";
+import { Legend } from "../TableModern.tsx";
 
 type NoteType = "MAINTENANCE" | "DRIVER" | "ROUTE" | "DONE";
 export interface Note {
+    id: string;
     date: string;
     note: string;
     isImportant: boolean;
     type: NoteType;
     [key: string]: unknown;
 }
-
 interface TruckNoteProps {
     truckId: string | null;
+    onSetLegend(trucks: (oldTrucks: Legend[]) => Legend[]): void;
+    onTruckId: (truckId: string | null) => void;
 }
-
 interface TruckNoteResponse {
     number: string;
     records: Note[];
 }
 
-function TruckNote({ truckId }: TruckNoteProps) {
+function TruckNote({ truckId, onSetLegend, onTruckId }: TruckNoteProps) {
     const { addNotification } = useNotification();
     const fetchWrapper = new FetchWrapper('/trucks');
     const noteTypes: NoteType[] = ["MAINTENANCE", "DRIVER", "ROUTE", "DONE"];
@@ -33,6 +35,7 @@ function TruckNote({ truckId }: TruckNoteProps) {
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const [notes, setNotes] = useState<Note[]>([]);
     const initNote: Note = {
+        id: '',
         date: moment().format("DD.MM.YYYY"),
         note: "",
         isImportant: false,
@@ -62,7 +65,6 @@ function TruckNote({ truckId }: TruckNoteProps) {
 
         fetchWrapper.post<Note & ServerResponse>(`/${truckId}/add-record`, newNote)
             .then((response) => {
-                console.log(response);
                 const { status, message, ...record } = response;
                 setNotes(oldNotes => {
                     return [
@@ -71,11 +73,14 @@ function TruckNote({ truckId }: TruckNoteProps) {
                     ]
                 });
                 addNotification(status, message);
+                handleBoolStateWithTimeout(setIsConfirmed, 4000, "Note saved successfully");
+                setNewNote(initNote);
             })
-
-        handleBoolStateWithTimeout(setIsConfirmed, 4000, "Note saved successfully");
+            .catch((error) => {
+                console.log(error);
+                addNotification('error', 'Error while saving note');
+            });
         setIsEditing(false);
-        setNewNote(initNote);
     };
     const handleNoteCancel = () => {
         setIsEditing(false);
@@ -109,24 +114,44 @@ function TruckNote({ truckId }: TruckNoteProps) {
             };
         });
     };
+    const handleDeleteClick = () => {
+        fetchWrapper.delete<ServerResponse>(`/${truckId}`)
+            .then((response) => {
+                const { status, message } = response;
+
+                onSetLegend(oldTrucks => {
+                    return oldTrucks.filter(truck => truck.id !== truckId)
+                });
+                onTruckId(null);
+                addNotification(status, message);
+            })
+            .catch((error) => {
+                console.log(error);
+                addNotification('error', 'Error while deleting truck');
+            });
+    };
 
     return (
         <div className="h-full w-full border-b border-gray-200 relative flex flex-col">
             <div className="flex flex-col flex-1">
                 { truckId &&
-                    <div className='text-white w-full text-center py-2'>
+                    <div className='text-white w-full text-center py-2 relative'>
                         <span className="font-bold text-xl">{ truckNumber }</span>
+                        <button onClick={ handleDeleteClick } className="absolute text-sm opacity-20 hover:opacity-100 right-2 top-1/3 bg-red-600 px-4">Delete
+                            Truck
+                        </button>
                     </div>
                 }
                 <div className="flex flex-col justify-between flex-1">
                     <div className="flex-1">
-                        <NoteScreen notes={ notes }/>
+                    <NoteScreen notes={ notes } onSetNotes={setNotes} truckId={ truckId || null } />
                     </div>
                     { truckId &&
                         <div className="flex flex-col justify-start">
                             { isEditing &&
-                                <span
-                                    className="text-orange-300 px-4 py-2 italic">Use ! sign to make note important</span> }
+                                <span className="text-orange-300 px-4 py-2 italic">
+                                    Use ! sign to make note important
+                                </span> }
                             <form onSubmit={ handleNoteSubmit } action="" className="flex justify-between mb-2 px-4">
                                 { isEditing ?
                                     <div className="flex justify-between flex-1">
@@ -152,7 +177,9 @@ function TruckNote({ truckId }: TruckNoteProps) {
                                     </div>
                                     :
                                     <button onClick={ () => setIsEditing(true) }
-                                            className="bg-gray-400 hover:bg-gray-200 px-8 mt-2">Add</button>
+                                            className="bg-gray-400 hover:bg-gray-200 px-8 mt-2">
+                                        Add
+                                    </button>
                                 }
                                 { (isConfirmed || isError) &&
                                     (

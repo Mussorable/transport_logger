@@ -10,14 +10,17 @@ interface AddRouteProps {
     existedRoute?: Route;
 }
 export interface Route {
+    id: string;
     date: string;
     deliveryTime: string;
     to: string;
     status: string;
+    [key: string]: unknown;
 }
 
 function AddRoute({ editingTruck, onRouteAdded, onCancel, existedRoute }: AddRouteProps) {
     const [newRoute, setNewRoute] = useState<Route>(existedRoute ? existedRoute : {
+        id: '',
         date: editingTruck.day,
         deliveryTime: generateTimeFormat(moment().format("HH:mm")),
         to: "",
@@ -42,6 +45,7 @@ function AddRoute({ editingTruck, onRouteAdded, onCancel, existedRoute }: AddRou
     };
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
+
         onRouteAdded(newRoute, editingTruck);
     };
     const handleEscPress = (e: KeyboardEvent) => {

@@ -9,6 +9,7 @@ import TruckNote from "./tabs/TruckNote.tsx";
 import DailyNote from "./tabs/DailyNote.tsx";
 import { useAuth } from "../auth/AuthProvider.tsx";
 import { FetchWrapper } from "../../utils/FetchWrapper.tsx";
+import { useNotification } from "../../utils/NotificationContext.tsx";
 
 const browserLanguage= navigator.language;
 
@@ -18,13 +19,14 @@ export interface Legend {
     legends: Route[];
 }
 export interface EditingTruck {
-    truckNumber: string;
+    truckId: string;
     day: string;
 }
 
 function TableModern() {
     moment.locale(browserLanguage);
 
+    const { addNotification } = useNotification();
     const fetchWrapper = new FetchWrapper('/trucks');
     const { isAuthenticated } = useAuth();
     const week: string[] = generateWeek();
@@ -42,38 +44,63 @@ function TableModern() {
     }, []);
 
     const handleAddRoute = (route: Route, certainLegend: EditingTruck) => {
-        const { truckNumber } = certainLegend;
-        setLegend((prevLegend) =>
-            prevLegend.map((truck) => {
-                    if (truck.number === truckNumber) {
-                        const isRouteExist = truck.legends.some((existingRoute) => existingRoute.date === route.date);
+        const { truckId } = certainLegend;
+        const { id } = route;
+        const isRouteExist = legend.some((truck) =>
+            truck.id === truckId && truck.legends.some((existedRoute) => existedRoute.id === route.id));
 
-                        // If route already exists just update fields, otherwise add new legend
-                        const updatedLegend = isRouteExist
-                            ? truck.legends.map((existingRoute) =>
-                                    existingRoute.date === route.date
-                                        ? { ...existingRoute, ...route }
-                                        : existingRoute
-                            ) : [...truck.legends, route];
-                        return { ...truck, legends: updatedLegend };
-                    }
-                    return truck;
-                }
-            )
-        );
+        if (!isRouteExist) {
+            fetchWrapper.post<Route>(`/${truckId}/add-legend`, route)
+                .then((newRoute) => {
+                    setLegend((prevLegend) => {
+                        return prevLegend.map((truck) => {
+                            if (truck.id === truckId) {
+                                return { ...truck, legends: [ ...truck.legends, newRoute ] }
+                            }
+                            return truck;
+                        })
+                    });
+                    addNotification('success', 'Route added');
+                })
+                .catch((error) => {
+                    console.log(error);
+                    addNotification('error', 'Error while adding route');
+                });
+        } else {
+            fetchWrapper.put<Route>(`/${truckId}/legends/${id}`, route)
+                .then((editedRoute) => {
+                    setLegend((prevLegend) => {
+                        return prevLegend.map((truck) => {
+                            if (truck.id === truckId) {
+                                const updatedLegends = truck.legends.map((existingRoute) => {
+                                    return existingRoute.id === route.id ? { ...existingRoute, ...editedRoute } : existingRoute;
+                                });
+                                return { ...truck, legends: updatedLegends }; // Обновляем весь объект truck
+                            }
+                            return truck;
+                        });
+                    });
+                    addNotification('warning', 'Route edited');
+                })
+                .catch((error) => {
+                    console.log(error);
+                    addNotification('error', 'Error while editing route');
+                });
+        }
+
         setEditingTruck(null);
     };
     const handleCancelAddRoute = () => {
             setEditingTruck(null);
     };
-    const handleExistedRouteClick = (truckNumber: string, day: string) => {
+    const handleExistedRouteClick = (truckId: string, day: string) => {
         setEditingTruck({
-            truckNumber,
+            truckId,
             day
         });
     };
     const handleAddTruckClick = () => {
-        setModalContent(<AddTruck setLegend={setLegend} onModalVisible={setIsModalVisible} />);
+        setModalContent(<AddTruck legend={legend} setLegend={setLegend} onModalVisible={setIsModalVisible} />);
         setIsModalVisible((prev) => !prev);
     };
     const handleTruckClick = (truckId: string) => {
@@ -124,9 +151,9 @@ function TableModern() {
                                                         if (route.date === day) {
                                                             return (
                                                                 <div key={ index }
-                                                                     onClick={ () => handleExistedRouteClick(truck.number, day) }
+                                                                     onClick={ () => handleExistedRouteClick(truck.id, day) }
                                                                      className="flex h-full">
-                                                                    { hasRoute && editingTruck?.truckNumber === truck.number && editingTruck.day === day ?
+                                                                    { hasRoute && editingTruck?.truckId === truck.id && editingTruck.day === day ?
                                                                         (
                                                                             <AddRoute
                                                                                 key={ `${ truck.number }-${ day }` }
@@ -139,7 +166,7 @@ function TableModern() {
                                                                         (
                                                                             <div
                                                                                 className={ `text-sm font-light px-1 w-full h-full overflow-x-hidden ${ route.status === 'DONE' ? 'bg-gray-600 text-gray-900' : route.status === 'LOADING' ? 'bg-green-300 hover:bg-green-200 cursor-pointer' : 'bg-blue-300 hover:bg-blue-200 cursor-pointer' }` }>
-                                                                                <p className="block w-full h-5 overflow-hidden text-[0.8rem]">{ `${ route.to[0].toUpperCase() }${ route.to.slice(1).toLowerCase() }` }</p>
+                                                                                <p className="block w-full h-5 overflow-hidden text-[0.8rem]">{ route.to }</p>
                                                                                 <p>{ route.deliveryTime }</p>
                                                                             </div>
                                                                         )
@@ -149,10 +176,10 @@ function TableModern() {
                                                         }
                                                     }) }
                                                     { !hasRoute && (
-                                                        editingTruck?.truckNumber === truck.number && editingTruck.day === day ?
+                                                        editingTruck?.truckId === truck.id && editingTruck.day === day ?
                                                             (
                                                                 <AddRoute
-                                                                    key={ `${ truck.number }-${ day }` }
+                                                                    key={ `${ truck.id }-${ day }` }
                                                                     editingTruck={ editingTruck }
                                                                     onRouteAdded={ handleAddRoute }
                                                                     onCancel={ handleCancelAddRoute }
@@ -163,7 +190,7 @@ function TableModern() {
                                                                     key={ `${ truck.number }-${ day }` }
                                                                     className="bg-gray-700 hover:bg-gray-600 w-full h-full px-5 font-normal text-sm"
                                                                     onClick={ () => setEditingTruck({
-                                                                        truckNumber: truck.number,
+                                                                        truckId: truck.id,
                                                                         day
                                                                     }) }>Add</button>
                                                             )
@@ -183,7 +210,7 @@ function TableModern() {
                     </div>
                 </div>
                 <div className="h-full w-1/2 flex flex-col border-l border-gray-200">
-                    <TruckNote truckId={ truckId }/>
+                    <TruckNote truckId={ truckId } onTruckId={setTruckId} onSetLegend={setLegend}/>
                     <DailyNote/>
                 </div>
             </div>
