@@ -28,7 +28,7 @@ function AddRoute({ editingTruck, onRouteAdded, onCancel, existedRoute }: AddRou
     });
 
     const validateCity = (city: string) => {
-        const regex = /^[A-Za-z\s-]{0,16}$/;
+        const regex = /^[A-Za-z0-9\s-]{0,16}$/;
         if (city.length > 10) return city.slice(0, 16);
         return regex.test(city) ? city : '';
     };
