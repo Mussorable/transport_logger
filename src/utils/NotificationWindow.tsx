@@ -9,7 +9,7 @@ function NotificationWindow() {
                 {notifications.map(({ id, status, message }, index) => (
                     <div
                         key={`${id}-${index}`}
-                        className={`items-center px-6 py-2 justify-between shadow-lg rounded-lg pointer-events-auto border-2 ${
+                        className={`items-center px-4 py-2 animate-slideInOut justify-between shadow-lg rounded-lg pointer-events-auto border-2 ${
                             status === "warning"
                                 ? "bg-orange-300 border-orange-400"
                                 : status === "error"

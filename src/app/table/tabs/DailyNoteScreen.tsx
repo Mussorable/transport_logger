@@ -22,22 +22,23 @@ function DailyNoteScreen({ dailyNotes, setDailyNotes }: DailyNoteProps) {
 
         if (!editingNote || !editingNote.id) return;
 
-        if (editingNote.noteMessage.length < 1) {
+        if (editingNote.noteMessage.length === 1) {
             fetchWrapper.delete<ShortNote>(`/${editingNote.id}`)
                 .then(() => {
                     setDailyNotes((oldNotes: ShortNote[]) => oldNotes.filter((note) => note.id !== editingNote.id));
                 });
-        } else {
-            fetchWrapper.put<ShortNote>(`/${editingNote.id}`, editingNote)
-                .then((updatedNote) => {
-                    setDailyNotes((oldNotes: ShortNote[]) => {
-                        return oldNotes.map((note) =>
-                            note.id === updatedNote.id
-                                ? { ...updatedNote, noteMessage: updatedNote.noteMessage } : note
-                        )
-                    });
-                });
+            return;
         }
+
+        fetchWrapper.put<ShortNote>(`/${editingNote.id}`, editingNote)
+            .then((updatedNote) => {
+                setDailyNotes((oldNotes: ShortNote[]) => {
+                    return oldNotes.map((note) =>
+                        note.id === updatedNote.id
+                            ? { ...updatedNote, noteMessage: updatedNote.noteMessage } : note
+                    )
+                });
+            });
 
         setEditingNote(null);
         setEditingIndex(null);

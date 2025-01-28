@@ -28,7 +28,7 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
         const id = Date.now();
         setNotifications((prev) => [...prev, { id, status, message }]);
 
-        setTimeout(() => removeNotification(id), 5000);
+        setTimeout(() => removeNotification(id), 2000);
     };
 
     return (

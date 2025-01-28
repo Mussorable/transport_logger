@@ -3,6 +3,7 @@ import { useState, MouseEvent, ChangeEvent, FormEvent, useEffect } from "react";
 import { FetchWrapper } from "../../../utils/FetchWrapper.tsx";
 import { useNotification } from "../../../utils/NotificationContext.tsx";
 import { ServerResponse } from "../../auth/AppInitializer.tsx";
+import { Link } from "react-router-dom";
 
 export interface ShortNote {
     id: string | undefined;
@@ -37,7 +38,6 @@ function DailyNote() {
 
         fetchWrapper.post<ShortNote & ServerResponse>('/add', newNote)
             .then(response => {
-                console.log(response);
                 const { status, message, ...addedNote } = response;
                 setDailyNotes(prev => [...prev, addedNote as ShortNote]);
                 setIsCreating(false);
@@ -67,8 +67,9 @@ function DailyNote() {
             <DailyNoteScreen dailyNotes={dailyNotes} setDailyNotes={setDailyNotes} />
             {!isCreating ?
                 (
-                    <div className="w-full px-2 py-2 z-[2]">
+                    <div className="w-full px-2 py-2 z-[2] flex justify-between">
                         <button onClick={ () => setIsCreating(true) } className="bg-gray-400 hover:bg-gray-200 px-4">Add</button>
+                        <Link className="bg-red-800 hover:opacity-100 opacity-50 px-4" to={'/logout'}>Logout</Link>
                     </div>
                 )
                 :

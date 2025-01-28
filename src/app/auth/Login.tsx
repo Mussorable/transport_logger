@@ -22,12 +22,18 @@ function Login() {
     const handleSubmitForm = (event: FormEvent) => {
         event.preventDefault();
 
+        const { email, password } = loginForm;
+        if (!email || !password) {
+            return addNotification('error', 'Please provide email and password');
+        }
+
         fetchWrapper.post<ServerResponse>('/login', loginForm)
             .then((response) => {
                 const { status, message } = response;
                 if (status === 'success') window.location.reload();
                 addNotification(status, message);
-            });
+            })
+            .catch((error: ServerResponse) => addNotification(error.status, error.message));
     };
     const handleChangeInput = (event: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;

@@ -9,6 +9,7 @@ import ProtectedRoute from "./app/auth/ProtectedRoute.tsx";
 import AppInitializer from "./app/auth/AppInitializer.tsx";
 import NotificationWindow from "./utils/NotificationWindow.tsx";
 import { NotificationProvider } from "./utils/NotificationContext.tsx";
+import Logout from "./app/auth/Logout.tsx";
 
 function App() {
     return (
@@ -26,6 +27,11 @@ function App() {
                             <Route path="/" element={
                                 <ProtectedRoute>
                                     <TableModern/>
+                                </ProtectedRoute>
+                            } />
+                            <Route path="/logout" element={
+                                <ProtectedRoute>
+                                    <Logout />
                                 </ProtectedRoute>
                             } />
                         </Route>

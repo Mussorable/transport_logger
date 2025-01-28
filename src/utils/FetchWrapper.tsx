@@ -32,6 +32,8 @@ export class FetchWrapper {
             },
             body: JSON.stringify(body),
             credentials: 'include',
-        }).then((response) => response.json());
+        })
+            .then((response) => response.json())
+            .catch(() => window.location.href = '/logout');
     }
 }
