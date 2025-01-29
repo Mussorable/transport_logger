@@ -117,8 +117,7 @@ function TableModern() {
         });
 
         fetchWrapper.put<Route>(`/${currentTruck.id}/legends/${routeId}`, { status: "DONE" })
-            .then((response) => {
-                console.log(response);
+            .then(() => {
                 setLegend(updatedLegends);
                 addNotification('warning', 'Route marked as done');
             })
