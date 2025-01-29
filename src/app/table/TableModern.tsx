@@ -1,5 +1,5 @@
 import rightArrow from '../../assets/right-arrow.svg';
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, MouseEvent, useEffect, useState } from "react";
 import ModalWindow from "../../utils/ModalWindow.tsx";
 import moment from "moment/min/moment-with-locales";
 import AddRoute, { Route } from "./legend/AddRoute.tsx";
@@ -21,6 +21,7 @@ export interface Legend {
 export interface EditingTruck {
     truckId: string;
     day: string;
+    routeId?: string;
 }
 
 function TableModern() {
@@ -93,18 +94,38 @@ function TableModern() {
     const handleCancelAddRoute = () => {
             setEditingTruck(null);
     };
-    const handleExistedRouteClick = (truckId: string, day: string) => {
-        setEditingTruck({
-            truckId,
-            day
-        });
-    };
     const handleAddTruckClick = () => {
         setModalContent(<AddTruck legend={legend} setLegend={setLegend} onModalVisible={setIsModalVisible} />);
         setIsModalVisible((prev) => !prev);
     };
     const handleTruckClick = (truckId: string) => {
         setTruckId(truckId);
+    };
+    const handleStatusChange = (e: MouseEvent<HTMLDivElement>, routeId: string, currentTruck: Legend) => {
+        e.preventDefault();
+
+        const updatedLegends = legend.map(truck => {
+            if (truck.id === currentTruck.id) {
+                return {
+                    ...truck,
+                    legends: truck.legends.map(route =>
+                        route.id === routeId ? {...route, status: "DONE"} : route
+                    )
+                };
+            }
+            return truck;
+        });
+
+        fetchWrapper.put<Route>(`/${currentTruck.id}/legends/${routeId}`, { status: "DONE" })
+            .then((response) => {
+                console.log(response);
+                setLegend(updatedLegends);
+                addNotification('warning', 'Route marked as done');
+            })
+            .catch(error => {
+                console.error(error);
+                addNotification('error', 'Failed to update status');
+            });
     };
 
     return (
@@ -137,7 +158,7 @@ function TableModern() {
                                         <p>{ truck.number.toUpperCase() }</p>
                                     </div>
                                     { week.map((day) => {
-                                        const hasRoute = truck.legends.some((route) => route.date === day);
+                                        const dayRoutes = truck.legends.filter(route => route.date === day);
 
                                         return (
                                             <div key={ day } className="flex">
@@ -147,54 +168,76 @@ function TableModern() {
                                                 </div>
                                                 <div
                                                     className="border-l border-gray-400 w-[104px] bg-gray-700 relative">
-                                                    { truck.legends && truck.legends.map((route, index) => {
-                                                        if (route.date === day) {
-                                                            return (
-                                                                <div key={ index }
-                                                                     onClick={ () => handleExistedRouteClick(truck.id, day) }
-                                                                     className="flex h-full">
-                                                                    { hasRoute && editingTruck?.truckId === truck.id && editingTruck.day === day ?
-                                                                        (
+                                                    <div className="flex h-full scroll-smooth overflow-x-scroll scrollbar-hide"
+                                                         onWheel={(e) => {
+                                                             e.currentTarget.scrollLeft += e.deltaY * 1.2;
+                                                             e.preventDefault();
+                                                         }}>
+                                                        { editingTruck?.truckId === truck.id && editingTruck?.day === day ? (
+                                                            editingTruck?.routeId ? (
+                                                                dayRoutes
+                                                                    .filter(route => route.id === editingTruck?.routeId)
+                                                                    .map(route => (
+                                                                        <div key={ route.id } className="w-full">
                                                                             <AddRoute
-                                                                                key={ `${ truck.number }-${ day }` }
                                                                                 editingTruck={ editingTruck }
                                                                                 onRouteAdded={ handleAddRoute }
                                                                                 onCancel={ handleCancelAddRoute }
                                                                                 existedRoute={ route }
                                                                             />
-                                                                        ) :
-                                                                        (
-                                                                            <div
-                                                                                className={ `text-sm font-light px-1 w-full h-full overflow-x-hidden ${ route.status === 'DONE' ? 'bg-gray-600 text-gray-900' : route.status === 'LOADING' ? 'bg-green-300 hover:bg-green-200 cursor-pointer' : 'bg-blue-300 hover:bg-blue-200 cursor-pointer' }` }>
-                                                                                <p className="block w-full h-5 overflow-hidden text-[0.8rem]">{ route.to }</p>
-                                                                                <p>{ route.deliveryTime }</p>
-                                                                            </div>
-                                                                        )
-                                                                    }
+                                                                        </div>
+                                                                    ))
+                                                            ) : (
+                                                                <div className="w-full">
+                                                                    <AddRoute
+                                                                        editingTruck={ editingTruck }
+                                                                        onRouteAdded={ handleAddRoute }
+                                                                        onCancel={ handleCancelAddRoute }
+                                                                    />
                                                                 </div>
                                                             )
-                                                        }
-                                                    }) }
-                                                    { !hasRoute && (
-                                                        editingTruck?.truckId === truck.id && editingTruck.day === day ?
-                                                            (
-                                                                <AddRoute
-                                                                    key={ `${ truck.id }-${ day }` }
-                                                                    editingTruck={ editingTruck }
-                                                                    onRouteAdded={ handleAddRoute }
-                                                                    onCancel={ handleCancelAddRoute }
-                                                                />
-                                                            ) :
-                                                            (
-                                                                <button
-                                                                    key={ `${ truck.number }-${ day }` }
-                                                                    className="bg-gray-700 hover:bg-gray-600 w-full h-full px-5 font-normal text-sm"
-                                                                    onClick={ () => setEditingTruck({
-                                                                        truckId: truck.id,
-                                                                        day
-                                                                    }) }>Add</button>
-                                                            )
-                                                    ) }
+                                                        ) : (
+                                                            <>
+                                                                { dayRoutes.map((route) => (
+                                                                    <div
+                                                                        key={ route.id }
+                                                                        className={ `cursor-pointer hover:w-full flex-1 ${ dayRoutes.length > 1 && dayRoutes.length < 4 ? `w-1/${ dayRoutes.length + 1 }` : dayRoutes.length >= 4 ? `w-1/${dayRoutes.length}` : 'w-full' }` }
+                                                                    >
+                                                                        <div
+                                                                            onContextMenu={ e => handleStatusChange(e, route.id, truck) }
+                                                                            onClick={ () => setEditingTruck({
+                                                                                truckId: truck.id,
+                                                                                day,
+                                                                                routeId: route.id
+                                                                            }) }
+                                                                            className={ `text-sm overflow-hidden font-light w-full px-1 h-full ${
+                                                                                route.status === 'DONE' ? 'bg-gray-600 text-gray-900'
+                                                                                    : route.status === 'LOADING' ? 'bg-green-300 hover:bg-green-200'
+                                                                                        : 'bg-blue-300 hover:bg-blue-200'
+                                                                            }` }
+                                                                        >
+                                                                            <p className="w-full h-5 overflow-hidden text-[0.7rem]">{ route.to }</p>
+                                                                            <p>{ route.deliveryTime }</p>
+                                                                        </div>
+                                                                    </div>
+                                                                )) }
+
+                                                                { (dayRoutes.length < 4) && (
+                                                                    <button
+                                                                        className={ `bg-gray-700 hover:bg-gray-600 ${
+                                                                            dayRoutes.length > 0 ? `w-1/4` : 'w-full'
+                                                                        } text-sm p-1` }
+                                                                        onClick={ () => setEditingTruck({
+                                                                            truckId: truck.id,
+                                                                            day,
+                                                                        }) }
+                                                                    >
+                                                                        { dayRoutes.length > 0 ? '+' : 'Add' }
+                                                                    </button>
+                                                                ) }
+                                                            </>
+                                                        ) }
+                                                    </div>
                                                 </div>
                                             </div>
                                         )
@@ -210,7 +253,7 @@ function TableModern() {
                     </div>
                 </div>
                 <div className="h-full w-1/2 flex flex-col border-l border-gray-200">
-                    <TruckNote truckId={ truckId } onTruckId={setTruckId} onSetLegend={setLegend}/>
+                    <TruckNote truckId={ truckId } onTruckId={ setTruckId } onSetLegend={ setLegend }/>
                     <DailyNote/>
                 </div>
             </div>
